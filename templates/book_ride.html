@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Your Ride - RideShare</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Top Navigation Bar */
+        .top-navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 14px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .navbar-brand {
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .navbar-user {
+            font-size: 14px;
+            color: #374151;
+            font-weight: 600;
+        }
+        
+        .navbar-logout {
+            padding: 10px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .navbar-logout:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+        
+        /* Main Content */
+        .book-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .book-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 40px 50px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 650px;
+            width: 100%;
+            animation: slideUp 0.6s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .book-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        
+        .location-icon-wrapper {
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 35px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .book-header h1 {
+            font-size: 30px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+        
+        .book-header p {
+            color: #6b7280;
+            font-size: 15px;
+        }
+        
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .input-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        
+        .location-input-wrapper {
+            position: relative;
+        }
+        
+        .location-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .location-icon.pickup {
+            color: #10b981;
+        }
+        
+        .location-icon.dropoff {
+            color: #ef4444;
+        }
+        
+        .location-input {
+            width: 100%;
+            padding: 14px 48px 14px 48px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: rgba(249, 250, 251, 0.8);
+            cursor: pointer;
+        }
+        
+        .location-input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+        
+        .location-input::placeholder {
+            color: #9ca3af;
+        }
+        
+        .dropdown-arrow {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #667eea;
+            font-size: 20px;
+            z-index: 2;
+        }
+        
+        .dropdown-arrow.active {
+            transform: translateY(-50%) rotate(180deg);
+        }
+        
+        /* Custom Glassmorphic Dropdown */
+        .custom-dropdown {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            max-height: 240px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .custom-dropdown.show {
+            display: block;
+            animation: dropdownSlide 0.3s ease;
+        }
+        
+        @keyframes dropdownSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .dropdown-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+            font-size: 15px;
+            color: #374151;
+        }
+        
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+        
+        .dropdown-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+        
+        .dropdown-item.active {
+            background: rgba(102, 126, 234, 0.15);
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .route-divider {
+            text-align: center;
+            margin: 16px 0;
+            position: relative;
+        }
+        
+        .route-divider::before,
+        .route-divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 42%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
+        }
+        
+        .route-divider::before { left: 0; }
+        .route-divider::after { right: 0; }
+        
+        .route-divider-icon {
+            background: white;
+            width: 40px;
+            height: 40px;
+            margin: 0 auto;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #e5e7eb;
+            font-size: 20px;
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 28px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: rgba(243, 244, 246, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: #374151;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(229, 231, 235, 0.9);
+        }
+        
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        
+        .alert {
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s ease;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .alert-success {
+            background: rgba(209, 250, 229, 0.9);
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+        
+        .alert-error {
+            background: rgba(254, 226, 226, 0.9);
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+        
+        .alert-icon {
+            font-size: 18px;
+        }
+        
+        @media (max-width: 768px) {
+            .top-navbar {
+                padding: 12px 20px;
+            }
+            
+            .navbar-brand {
+                font-size: 20px;
+            }
+            
+            .navbar-user {
+                display: none;
+            }
+            
+            .book-card {
+                padding: 30px 28px;
+            }
+            
+            .book-header h1 {
+                font-size: 24px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <nav class="top-navbar">
+        <div class="navbar-brand">
+            <span>🚗</span>
+            <span>RideShare</span>
+        </div>
+        <div class="navbar-right">
+            <span class="navbar-user">Hi, {{ session['user'] }}!</span>
+            <a href="{{ url_for('logout') }}" class="navbar-logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="book-container">
+        <div class="book-card">
+            <div class="book-header">
+                <div class="location-icon-wrapper">
+                    🚗
+                </div>
+                <h1>Book Your Ride</h1>
+                <p>Enter your pickup and destination</p>
+            </div>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">
+                                <span class="alert-icon">
+                                    {% if category == 'success' %}✓{% else %}⚠{% endif %}
+                                </span>
+                                <span>{{ message }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            
+            <form method="POST" action="{{ url_for('book_ride') }}">
+                <div class="input-group">
+                    <label class="input-label" for="source">📍 Pickup Location</label>
+                    <div class="location-input-wrapper">
+                        <div class="location-icon pickup">●</div>
+                        <input type="text" 
+                               id="source" 
+                               name="source" 
+                               class="location-input" 
+                               placeholder="Select pickup location"
+                               required
+                               autocomplete="off"
+                               readonly>
+                        <div class="dropdown-arrow" id="source-arrow">▼</div>
+                        <div class="custom-dropdown" id="source-dropdown"></div>
+                    </div>
+                </div>
+                
+                <div class="route-divider">
+                    <div class="route-divider-icon">⤵</div>
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label" for="destination">🎯 Drop-off Location</label>
+                    <div class="location-input-wrapper">
+                        <div class="location-icon dropoff">●</div>
+                        <input type="text" 
+                               id="destination" 
+                               name="destination" 
+                               class="location-input" 
+                               placeholder="Select destination"
+                               required
+                               autocomplete="off"
+                               readonly>
+                        <div class="dropdown-arrow" id="destination-arrow">▼</div>
+                        <div class="custom-dropdown" id="destination-dropdown"></div>
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button type="submit" class="btn btn-primary">
+                        <span>🔍</span>
+                        <span>Find Route</span>
+                    </button>
+                    <a href="{{ url_for('user_dashboard') }}" class="btn btn-secondary">
+                        <span>Cancel</span>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const cities = [
+            'Adoni', 'Amalapuram', 'Amaravati', 'Anakapalli', 'Anantapur', 'Avanigadda',
+            'Bapatla', 'Chirala', 'Chittoor', 'Eluru', 'Guntur', 'Hindupur',
+            'Kadapa', 'Kadiri', 'Kakinada', 'Kavali', 'Kurnool', 'Machilipatnam', 'Mangalgiri',
+            'Madanapalle', 'Nandyal', 'Narsaraopet', 'Nellore', 'Ongole', 'Proddatur',
+            'Rajahmundry', 'Srikakulam', 'Srikalahasti', 'Tadepalligudem', 'Tanuku',
+            'Tenali', 'Tirupati', 'Vijayawada', 'Visakhapatnam', 'Vizianagaram'
+        ];
+        
+        function setupDropdown(inputId, dropdownId, arrowId) {
+            const input = document.getElementById(inputId);
+            const dropdown = document.getElementById(dropdownId);
+            const arrow = document.getElementById(arrowId);
+            
+            // Populate dropdown
+            dropdown.innerHTML = cities.map(city => 
+                `<div class="dropdown-item" data-value="${city}">${city}</div>`
+            ).join('');
+            
+            // Toggle dropdown on arrow click
+            arrow.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const isShown = dropdown.classList.contains('show');
+                closeAllDropdowns();
+                if (!isShown) {
+                    dropdown.classList.add('show');
+                    arrow.classList.add('active');
+                }
+            });
+            
+            // Toggle dropdown on input click
+            input.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const isShown = dropdown.classList.contains('show');
+                closeAllDropdowns();
+                if (!isShown) {
+                    dropdown.classList.add('show');
+                    arrow.classList.add('active');
+                }
+            });
+            
+            // Select item
+            dropdown.addEventListener('click', function(e) {
+                if (e.target.classList.contains('dropdown-item')) {
+                    input.value = e.target.dataset.value;
+                    dropdown.classList.remove('show');
+                    arrow.classList.remove('active');
+                }
+            });
+        }
+        
+        function closeAllDropdowns() {
+            document.querySelectorAll('.custom-dropdown').forEach(dd => dd.classList.remove('show'));
+            document.querySelectorAll('.dropdown-arrow').forEach(arrow => arrow.classList.remove('active'));
+        }
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', closeAllDropdowns);
+        
+        // Setup both dropdowns
+        setupDropdown('source', 'source-dropdown', 'source-arrow');
+        setupDropdown('destination', 'destination-dropdown', 'destination-arrow');
+    </script>
+</body>
+</html>

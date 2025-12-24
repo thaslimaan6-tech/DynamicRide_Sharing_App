@@ -1,0 +1,534 @@
+{% extends "base.html" %}
+
+{% block title %}User Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <h1>🚗 My Rides</h1>
+            <p class="welcome-text">Welcome back, <strong>{{ user }}</strong>!</p>
+        </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="actions-bar">
+        <a href="{{ url_for('book_ride') }}" class="btn btn-book">
+            <span>+</span> Book New Ride
+        </a>
+        <a href="{{ url_for('logout') }}" class="btn btn-logout">
+            <span>🚪</span> Logout
+        </a>
+    </div>
+    
+    <!-- Rides Section -->
+    <div class="rides-section">
+        <h2 class="section-title">📋 Your Rides</h2>
+        
+        {% if rides %}
+        <div class="rides-grid">
+            {% for ride in rides %}
+            <div class="ride-card status-{{ ride.status }}">
+                <!-- Status Badge -->
+                <div class="status-badge status-{{ ride.status }}">
+                    {% if ride.status == 'pending' %}
+                        ⏳ Searching for Rider...
+                    {% elif ride.status == 'accepted' %}
+                        ✅ Rider Found!
+                    {% else %}
+                        ✓ Completed
+                    {% endif %}
+                </div>
+                
+                <!-- Rider Info Card (only show if accepted) -->
+                {% if ride.status == 'accepted' and ride.rider_name %}
+                <div class="rider-info-card">
+                    <div class="rider-avatar-large">
+                        {{ ride.rider_name[0]|upper }}
+                    </div>
+                    <div class="rider-details">
+                        <h4 class="rider-name">🏍️ Your Rider: {{ ride.rider_name }}</h4>
+                        <p class="rider-status">On the way to pick you up!</p>
+                        {% if ride.rider_lat and ride.rider_lon %}
+                        <p class="rider-location">
+                            📍 Current: {{ "%.4f"|format(ride.rider_lat) }}°N, {{ "%.4f"|format(ride.rider_lon) }}°E
+                        </p>
+                        {% endif %}
+                        {% if ride.eta_minutes %}
+                        <p class="rider-eta">
+                            ⏱️ Estimated arrival: {{ ride.eta_minutes }} minutes
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Route Visualization -->
+                <div class="ride-route">
+                    <div class="route-point start">
+                        <div class="point-icon">🔵</div>
+                        <div class="point-details">
+                            <span class="point-label">From</span>
+                            <span class="point-location">{{ ride.source }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="route-connector">
+                        <div class="connector-line"></div>
+                        <div class="connector-arrow">→</div>
+                    </div>
+                    
+                    <div class="route-point end">
+                        <div class="point-icon">🔴</div>
+                        <div class="point-details">
+                            <span class="point-label">To</span>
+                            <span class="point-location">{{ ride.destination }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Path -->
+                <div class="ride-path">
+                    <strong>Via:</strong> {{ ride.path }}
+                </div>
+                
+                <!-- Timestamp -->
+                <div class="ride-timestamp">
+                    📅 Booked on {{ ride.created_at }}
+                </div>
+                
+                <!-- Actions -->
+                <div class="ride-actions">
+                    <a href="{{ url_for('show_route', ride_id=ride.id) }}" class="btn-view-route">
+                        🗺️ View Route
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">🚫</div>
+            <h3>No Rides Yet</h3>
+            <p>You haven't booked any rides yet. Start your journey now!</p>
+            <a href="{{ url_for('book_ride') }}" class="btn btn-book-large">
+                <span>+</span> Book Your First Ride
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Auto-refresh script -->
+<script>
+// Only auto-refresh if there are PENDING rides
+{% if rides %}
+    let hasPendingRides = false;
+    {% for ride in rides %}
+        {% if ride.status == 'pending' %}
+            hasPendingRides = true;
+        {% endif %}
+    {% endfor %}
+    
+    if (hasPendingRides) {
+        console.log('⏳ Pending rides found - will auto-refresh in 5 seconds');
+        setTimeout(() => {
+            console.log('🔄 Refreshing to check for rider...');
+            window.location.reload();
+        }, 5000);
+    } else {
+        console.log('✅ All rides are accepted or completed - no auto-refresh needed');
+    }
+{% endif %}
+
+console.log('✅ User dashboard loaded');
+</script>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    body {
+        background: #f5f7fa;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .dashboard-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+    
+    /* Header */
+    .dashboard-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 32px;
+        border-radius: 16px;
+        margin-bottom: 24px;
+        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.25);
+    }
+    
+    .dashboard-header h1 {
+        color: white;
+        font-size: 32px;
+        margin-bottom: 8px;
+    }
+    
+    .welcome-text {
+        color: rgba(255, 255, 255, 0.95);
+        font-size: 16px;
+    }
+    
+    /* Actions Bar */
+    .actions-bar {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+    
+    .btn {
+        padding: 14px 28px;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-book {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+    }
+    
+    .btn-book:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
+    }
+    
+    .btn-logout {
+        background: #ef4444;
+        color: white;
+    }
+    
+    .btn-logout:hover {
+        background: #dc2626;
+        transform: translateY(-2px);
+    }
+    
+    /* Rides Section */
+    .rides-section {
+        margin-top: 24px;
+    }
+    
+    .section-title {
+        font-size: 24px;
+        color: #1f2937;
+        margin-bottom: 20px;
+    }
+    
+    .rides-grid {
+        display: grid;
+        gap: 20px;
+    }
+    
+    /* Ride Card */
+    .ride-card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s;
+        border: 2px solid transparent;
+    }
+    
+    .ride-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+    
+    .ride-card.status-accepted {
+        border-color: #10b981;
+        background: linear-gradient(to bottom, #f0fdf4, white);
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+    
+    .status-badge.status-pending {
+        background: #fef3c7;
+        color: #d97706;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+    
+    .status-badge.status-accepted {
+        background: #d1fae5;
+        color: #059669;
+    }
+    
+    .status-badge.status-completed {
+        background: #e0e7ff;
+        color: #4f46e5;
+    }
+    
+    /* Rider Info Card */
+    .rider-info-card {
+        background: linear-gradient(135deg, #10b981, #059669);
+        padding: 20px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 16px;
+        color: white;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        animation: slideInRider 0.5s ease;
+    }
+    
+    @keyframes slideInRider {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    .rider-avatar-large {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        font-weight: 700;
+        color: white;
+        border: 4px solid white;
+        flex-shrink: 0;
+    }
+    
+    .rider-details {
+        flex: 1;
+    }
+    
+    .rider-name {
+        font-size: 20px;
+        margin: 0 0 6px 0;
+        color: white;
+    }
+    
+    .rider-status {
+        font-size: 14px;
+        margin: 0 0 6px 0;
+        opacity: 0.95;
+    }
+    
+    .rider-location {
+        font-size: 12px;
+        margin: 4px 0;
+        opacity: 0.9;
+        font-family: 'Courier New', monospace;
+    }
+    
+    .rider-eta {
+        font-size: 14px;
+        margin: 6px 0 0 0;
+        font-weight: 600;
+        opacity: 0.95;
+    }
+    
+    /* Route */
+    .ride-route {
+        display: flex;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+    
+    .route-point {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+    }
+    
+    .point-icon {
+        font-size: 24px;
+        flex-shrink: 0;
+    }
+    
+    .point-details {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .point-label {
+        font-size: 12px;
+        color: #6b7280;
+        margin-bottom: 4px;
+    }
+    
+    .point-location {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1f2937;
+    }
+    
+    .route-connector {
+        padding: 0 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+    
+    .connector-line {
+        width: 40px;
+        height: 2px;
+        background: #d1d5db;
+    }
+    
+    .connector-arrow {
+        font-size: 20px;
+        color: #9ca3af;
+    }
+    
+    .ride-path {
+        background: #f9fafb;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 14px;
+        color: #4b5563;
+        margin-bottom: 16px;
+    }
+    
+    .ride-timestamp {
+        font-size: 13px;
+        color: #9ca3af;
+        margin-bottom: 16px;
+    }
+    
+    .ride-actions {
+        display: flex;
+        gap: 12px;
+    }
+    
+    .btn-view-route {
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        color: white;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .btn-view-route:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 80px 40px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+    
+    .empty-icon {
+        font-size: 80px;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+    
+    .empty-state h3 {
+        font-size: 24px;
+        color: #1f2937;
+        margin-bottom: 12px;
+    }
+    
+    .empty-state p {
+        font-size: 16px;
+        color: #6b7280;
+        margin-bottom: 24px;
+    }
+    
+    .btn-book-large {
+        padding: 16px 32px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 18px;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+    
+    .btn-book-large:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 16px;
+        }
+        
+        .dashboard-header h1 {
+            font-size: 24px;
+        }
+        
+        .actions-bar {
+            flex-direction: column;
+        }
+        
+        .ride-route {
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .route-connector {
+            transform: rotate(90deg);
+        }
+        
+        .rider-info-card {
+            flex-direction: column;
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}
